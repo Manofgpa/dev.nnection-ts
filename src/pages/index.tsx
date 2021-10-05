@@ -1,87 +1,98 @@
 import { GetStaticProps } from 'next'
+import Prismic from '@prismicio/client'
+import Link from 'next/link'
 
 import { FaCalendar, FaUser } from 'react-icons/fa'
+import { format } from 'date-fns'
+import ptBR from 'date-fns/locale/pt-BR'
 import { getPrismicClient } from '../services/prismic'
 
 import commonStyles from '../styles/common.module.scss'
 import styles from './home.module.scss'
 
 interface Post {
-  uid?: string
-  first_publication_date: string | null
-  data: {
-    title: string
-    subtitle: string
-    author: string
-  }
+  slug: string
+  title: string
+  subtitle: string
+  date: string | null
+  author: string
 }
 
 interface PostPagination {
   next_page: string
-  results: Post[]
+  posts: Post[]
 }
 
-// interface HomeProps {
-//   postsPagination: PostPagination
-// }
+interface HomeProps {
+  postsPagination: PostPagination
+}
 
-export default function Home() {
+export default function Home({
+  postsPagination,
+}: HomeProps): React.ReactElement {
+  console.log(postsPagination)
+
+  const { posts } = postsPagination
+
   return (
-    <>
-      <img src="logo.svg" alt="logo" />
-      <div className={styles.container}>
-        <h2>Como utilizar Hooks</h2>
-        <p>Pensando em sincronização em vez de ciclo de vida.</p>
-        <div className={styles.footer}>
-          <div className={styles.date}>
-            <FaCalendar />
-            <p>15 Mar 2021</p>
-          </div>
-          <div className={styles.author}>
-            <FaUser />
-            <p>Joseph Oliveira</p>
-          </div>
-        </div>
+    <section className={styles.container}>
+      <div>
+        <img src="logo.svg" alt="logo" />
       </div>
+      {posts.map(post => (
+        <article className={styles.post}>
+          <Link key={post.slug} href={`/posts/${post.slug}`}>
+            <a key={post.slug}>
+              <h2>{post.title}</h2>
+              <p>{post.subtitle}</p>
+              <div className={styles.footer}>
+                <div className={styles.date}>
+                  <FaCalendar />
+                  <time>{post.date}</time>
+                </div>
+                <div className={styles.author}>
+                  <FaUser />
+                  <p>{post.author}</p>
+                </div>
+              </div>
+            </a>
+          </Link>
+        </article>
+      ))}
 
-      <div className={styles.container}>
-        <h2>Como utilizar Hooks</h2>
-        <p>Pensando em sincronização em vez de ciclo de vida.</p>
-        <div className={styles.footer}>
-          <div className={styles.date}>
-            <FaCalendar />
-            <p>15 Mar 2021</p>
-          </div>
-          <div className={styles.author}>
-            <FaUser />
-            <p>Joseph Oliveira</p>
-          </div>
-        </div>
-      </div>
-
-      <div className={styles.container}>
-        <h2>Como utilizar Hooks</h2>
-        <p>Pensando em sincronização em vez de ciclo de vida.</p>
-        <div className={styles.footer}>
-          <div className={styles.date}>
-            <FaCalendar />
-            <p>15 Mar 2021</p>
-          </div>
-          <div className={styles.author}>
-            <FaUser />
-            <p>Joseph Oliveira</p>
-          </div>
-        </div>
-      </div>
-    </>
+      <a className={styles.morePosts}>Carregar mais posts</a>
+    </section>
   )
 }
 
-export const getStaticProps = async () => {
+export const getStaticProps: GetStaticProps = async () => {
   const prismic = getPrismicClient()
-  const posts = await prismic.query('')
+  const response = await prismic.query(
+    [Prismic.predicates.at('document.type', 'posts')],
+    {
+      fetch: ['posts.title', 'posts.subtitle', 'posts.author'],
+    }
+  )
+
+  const posts = response.results.map(post => {
+    return {
+      slug: post.slugs[0],
+      title: post.data.title[0].text,
+      subtitle: post.data.subtitle[0].text,
+      date: format(new Date(post.first_publication_date), 'dd/MM/yyyy', {
+        locale: ptBR,
+      }),
+      author: post.data.author[0].text,
+    }
+  })
 
   return {
-    props: posts,
+    props: {
+      postsPagination: {
+        next_page: response.next_page,
+        posts,
+      },
+      revalidate: 60 * 30, // 30 minutos
+    },
   }
 }
