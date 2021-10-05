@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { FaCalendar, FaUser } from 'react-icons/fa'
 import { format } from 'date-fns'
 import ptBR from 'date-fns/locale/pt-BR'
+import Head from 'next/head'
 import { getPrismicClient } from '../services/prismic'
 
 import commonStyles from '../styles/common.module.scss'
@@ -27,41 +28,44 @@ interface HomeProps {
   postsPagination: PostPagination
 }
 
-export default function Home({
-  postsPagination,
-}: HomeProps): React.ReactElement {
-  console.log(postsPagination)
-
+export default function Home({ postsPagination }: HomeProps): JSX.Element {
   const { posts } = postsPagination
 
   return (
-    <section className={styles.container}>
-      <div>
-        <img src="logo.svg" alt="logo" />
-      </div>
-      {posts.map(post => (
-        <article className={styles.post}>
-          <Link key={post.slug} href={`/posts/${post.slug}`}>
-            <a key={post.slug}>
-              <h2>{post.title}</h2>
-              <p>{post.subtitle}</p>
-              <div className={styles.footer}>
-                <div className={styles.date}>
-                  <FaCalendar />
-                  <time>{post.date}</time>
-                </div>
-                <div className={styles.author}>
-                  <FaUser />
-                  <p>{post.author}</p>
-                </div>
-              </div>
-            </a>
-          </Link>
-        </article>
-      ))}
-
-      <a className={styles.morePosts}>Carregar mais posts</a>
-    </section>
+    <>
+      <Head>
+        <title>Home | Spaceblog</title>
+      </Head>
+      <main className={styles.container}>
+        <div className={styles.posts}>
+          {posts.map(post => (
+            <article className="">
+              <Link key={post.slug} href={`/posts/${post.slug}`}>
+                <a key={post.slug}>
+                  <h2>{post.title}</h2>
+                  <p>{post.subtitle}</p>
+                  <div className={styles.footer}>
+                    <div className={styles.date}>
+                      <FaCalendar />
+                      <time>{post.date}</time>
+                    </div>
+                    <div className={styles.author}>
+                      <FaUser />
+                      <p>{post.author}</p>
+                    </div>
+                  </div>
+                </a>
+              </Link>
+            </article>
+          ))}
+          {/* {postsPagination.next_page && ( */}
+          <a href="" className={styles.morePosts}>
+            Carregar mais posts
+          </a>
+          {/* )} */}
+        </div>
+      </main>
+    </>
   )
 }
 
@@ -79,7 +83,7 @@ export const getStaticProps: GetStaticProps = async () => {
       slug: post.slugs[0],
       title: post.data.title[0].text,
       subtitle: post.data.subtitle[0].text,
-      date: format(new Date(post.first_publication_date), 'dd/MM/yyyy', {
+      date: format(new Date(post.first_publication_date), 'dd MMM yyyy', {
         locale: ptBR,
       }),
       author: post.data.author[0].text,
