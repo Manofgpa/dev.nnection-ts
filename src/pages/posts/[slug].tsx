@@ -65,7 +65,7 @@ export default function Post({ post }: PostProps): JSX.Element {
           {post?.data.content.map(cont => (
             <section key={cont.heading}>
               <h2>{cont.heading}</h2>
-              <p>{cont.body.text}</p>
+              <div dangerouslySetInnerHTML={{ __html: cont.body.text }} />
             </section>
           ))}
         </div>
