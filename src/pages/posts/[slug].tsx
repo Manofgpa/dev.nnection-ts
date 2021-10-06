@@ -4,13 +4,19 @@ import Prismic from '@prismicio/client'
 import ptBR from 'date-fns/locale/pt-BR'
 import { format } from 'date-fns'
 import { RichText } from 'prismic-reactjs'
-import { FaCalendar, FaUser } from 'react-icons/fa'
+import { FaCalendar, FaUser, FaClock } from 'react-icons/fa'
 import { getPrismicClient } from '../../services/prismic'
 
 import commonStyles from '../../styles/common.module.scss'
 import styles from './post.module.scss'
 
+interface Content {
+  body: string
+  heading: string
+}
+
 interface Post {
+  slug: string
   first_publication_date: string | null
   data: {
     title: string
@@ -18,12 +24,7 @@ interface Post {
       url: string
     }
     author: string
-    content: {
-      heading: string
-      body: {
-        text: string
-      }
-    }
+    content: Content[]
   }
 }
 
@@ -31,29 +32,42 @@ interface PostProps {
   post: Post
 }
 
-export default function Post({ post }): JSX.Element {
+export default function Post({ post }: PostProps): JSX.Element {
   console.log(post)
 
   return (
     <>
-      <main>
-        <h1>{post?.title}</h1>
-        <div>
+      <div>
+        <img
+          src={post?.data.banner.url}
+          alt="banner"
+          className={styles.banner}
+        />
+      </div>
+      <main key={post?.slug} className={styles.container}>
+        <h1>{post?.data.title}</h1>
+        <div className={styles.details}>
           <div>
             <FaCalendar />
-            <time>{post?.date}</time>
+            <time>{post?.first_publication_date}</time>
           </div>
           <div>
             <FaUser />
-            <p>{post?.author}</p>
+            <p>{post?.data.author}</p>
+          </div>
+          <div>
+            <FaClock />
+            <p>4 min</p>
           </div>
         </div>
-        {post?.content.map(cont => (
-          <>
-            <h2>{cont.heading}</h2>
-            <p>{cont.body}</p>
-          </>
-        ))}
+        <div className={styles.content}>
+          {post?.data.content.map(cont => (
+            <section key={cont.heading}>
+              <h2>{cont.heading}</h2>
+              <p>{cont.body}</p>
+            </section>
+          ))}
+        </div>
       </main>
     </>
   )
@@ -79,7 +93,7 @@ export const getStaticProps: GetStaticProps = async ({ params: { slug } }) => {
 
   const response = await prismic.getByUID('posts', String(slug), {})
 
-  const content = response.data.content.map(cont => {
+  const content = response?.data.content.map(cont => {
     return {
       heading: RichText.asText(cont.heading),
       body: RichText.asText(cont.body),
@@ -87,13 +101,28 @@ export const getStaticProps: GetStaticProps = async ({ params: { slug } }) => {
   })
 
   const post = {
-    slug,
-    title: RichText.asText(response.data.title),
-    date: format(new Date(response.first_publication_date), 'dd MMM yyyy', {
-      locale: ptBR,
-    }),
-    author: RichText.asText(response.data.author),
-    content,
+    slug: response.uid,
+    first_publication_date: format(
+      new Date(response.first_publication_date),
+      'dd MMM yyyy',
+      {
+        locale: ptBR,
+      }
+    ),
+    data: {
+      content,
+      title: RichText.asText(response.data.title),
+      banner: {
+        url: response.data.banner.url,
+      },
+      author: RichText.asText(response.data.author),
+    },
+    // content: {
+    //   heading: RichText.asText(content.heading),
+    //   body: {
+    //     text: RichText.asText(content.body),
+    //   },
+    // },
   }
 
   return {
