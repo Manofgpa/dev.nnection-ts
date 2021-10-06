@@ -31,13 +31,20 @@ interface Post {
 interface PostProps {
   post: Post
 }
+const count = 0
 
 export default function Post({ post }: PostProps): JSX.Element {
   console.log(post)
 
+  const totalWords = post?.data.content.reduce(
+    (prev, curr) => prev + curr.body.split(' ').length
+  )
+
+  console.log(totalWords)
+
   return (
     <>
-      <div>
+      <div className={styles.banner}>
         <img
           src={post?.data.banner.url}
           alt="banner"
@@ -73,6 +80,7 @@ export default function Post({ post }: PostProps): JSX.Element {
   )
 }
 
+// resgatar posts para gerar static na build
 export const getStaticPaths: GetStaticPaths = async () => {
   const prismic = getPrismicClient()
   // const posts = await prismic.query(
