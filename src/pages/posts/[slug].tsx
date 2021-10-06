@@ -3,17 +3,13 @@ import { GetStaticPaths, GetStaticProps } from 'next'
 import Prismic from '@prismicio/client'
 import ptBR from 'date-fns/locale/pt-BR'
 import { format } from 'date-fns'
-import { RichText } from 'prismic-reactjs'
+import { RichText } from 'prismic-dom'
+
 import { FaCalendar, FaUser, FaClock } from 'react-icons/fa'
 import { getPrismicClient } from '../../services/prismic'
 
 import commonStyles from '../../styles/common.module.scss'
 import styles from './post.module.scss'
-
-interface Content {
-  body: string
-  heading: string
-}
 
 interface Post {
   slug: string
@@ -24,23 +20,21 @@ interface Post {
       url: string
     }
     author: string
-    content: Content[]
+    content: {
+      heading: string
+      body: {
+        text: string
+      }
+    }[]
   }
 }
 
 interface PostProps {
   post: Post
 }
-const count = 0
 
 export default function Post({ post }: PostProps): JSX.Element {
-  console.log(post)
-
-  const totalWords = post?.data.content.reduce(
-    (prev, curr) => prev + curr.body.split(' ').length
-  )
-
-  console.log(totalWords)
+  // console.log(post)
 
   return (
     <>
@@ -71,7 +65,7 @@ export default function Post({ post }: PostProps): JSX.Element {
           {post?.data.content.map(cont => (
             <section key={cont.heading}>
               <h2>{cont.heading}</h2>
-              <p>{cont.body}</p>
+              <p>{cont.body.text}</p>
             </section>
           ))}
         </div>
@@ -99,16 +93,24 @@ export const getStaticPaths: GetStaticPaths = async () => {
 export const getStaticProps: GetStaticProps = async ({ params: { slug } }) => {
   const prismic = getPrismicClient()
 
-  const response = await prismic.getByUID('posts', String(slug), {})
+  // const response = await prismic.getByUID('posts', String(slug), {})
+  const response = await prismic.getByUID(
+    'posts',
+    'es11---novas-features-do-javascript',
+    {}
+  )
 
-  const content = response?.data.content.map(cont => {
+  const content = response.data.content.map(cont => {
     return {
-      heading: RichText.asText(cont.heading),
-      body: RichText.asText(cont.body),
+      heading: cont.heading,
+      body: {
+        text: RichText.asHtml(cont.body),
+      },
     }
   })
 
   const post = {
+    response,
     slug: response.uid,
     first_publication_date: format(
       new Date(response.first_publication_date),
@@ -118,19 +120,13 @@ export const getStaticProps: GetStaticProps = async ({ params: { slug } }) => {
       }
     ),
     data: {
-      content,
       title: RichText.asText(response.data.title),
       banner: {
         url: response.data.banner.url,
       },
       author: RichText.asText(response.data.author),
+      content,
     },
-    // content: {
-    //   heading: RichText.asText(content.heading),
-    //   body: {
-    //     text: RichText.asText(content.body),
-    //   },
-    // },
   }
 
   return {
