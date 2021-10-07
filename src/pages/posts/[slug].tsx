@@ -93,12 +93,7 @@ export const getStaticPaths: GetStaticPaths = async () => {
 export const getStaticProps: GetStaticProps = async ({ params: { slug } }) => {
   const prismic = getPrismicClient()
 
-  // const response = await prismic.getByUID('posts', String(slug), {})
-  const response = await prismic.getByUID(
-    'posts',
-    'es11---novas-features-do-javascript',
-    {}
-  )
+  const response = await prismic.getByUID('posts', String(slug), {})
 
   const content = response.data.content.map(cont => {
     return {
