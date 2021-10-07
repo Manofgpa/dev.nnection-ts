@@ -1,12 +1,14 @@
 import { GetStaticPaths, GetStaticProps } from 'next'
 import Head from 'next/head'
+import Link from 'next/link'
 
 import Prismic from '@prismicio/client'
 import ptBR from 'date-fns/locale/pt-BR'
 import { format } from 'date-fns'
 import { RichText } from 'prismic-dom'
-
 import { FaCalendar, FaUser, FaClock } from 'react-icons/fa'
+
+import Comments from '../../components/Comments'
 import { getPrismicClient } from '../../services/prismic'
 
 import styles from './post.module.scss'
@@ -34,6 +36,8 @@ interface PostProps {
 }
 
 export default function Post({ post }: PostProps): JSX.Element {
+  console.log(post)
+
   return (
     <>
       {!post ? (
@@ -75,7 +79,22 @@ export default function Post({ post }: PostProps): JSX.Element {
                 </section>
               ))}
             </div>
-            <p>Carregando...</p>
+            <hr />
+            <section className={styles.pagination}>
+              {/* <Link href={pagination.next_page}> */}
+              <div>
+                <p>Como utlizar hooks</p>
+                <button>Post anterior</button>
+              </div>
+              {/* </Link> */}
+              <div>
+                <p>Criando um app CRA do zero</p>
+                <button>Próximo post</button>
+              </div>
+            </section>
+            <section className={styles.utteranc}>
+              <Comments />
+            </section>
           </main>
         </>
       )}
@@ -83,7 +102,6 @@ export default function Post({ post }: PostProps): JSX.Element {
   )
 }
 
-// resgatar posts para gerar static na build
 export const getStaticPaths: GetStaticPaths = async () => {
   const prismic = getPrismicClient()
   const response = await prismic.query(

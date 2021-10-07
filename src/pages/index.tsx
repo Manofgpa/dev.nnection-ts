@@ -32,8 +32,6 @@ export default function Home({ postsPagination }: HomeProps): JSX.Element {
   const [pagination, setPagination] = useState(postsPagination)
   const { posts } = pagination
 
-  console.log(pagination)
-
   const handlePagination: () => void = async () => {
     const nextPagePosts = await fetch(pagination.next_page).then(res =>
       res.json()
