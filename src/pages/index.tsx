@@ -9,6 +9,7 @@ import Head from 'next/head'
 import { useState } from 'react'
 import { getPrismicClient } from '../services/prismic'
 
+import commonStyles from '../styles/common.module.scss'
 import styles from './home.module.scss'
 
 interface Post {
@@ -26,9 +27,13 @@ interface PostPagination {
 
 interface HomeProps {
   postsPagination: PostPagination
+  preview: any
 }
 
-export default function Home({ postsPagination }: HomeProps): JSX.Element {
+export default function Home({
+  postsPagination,
+  preview,
+}: HomeProps): JSX.Element {
   const [pagination, setPagination] = useState(postsPagination)
   const { posts } = pagination
 
@@ -93,18 +98,29 @@ export default function Home({ postsPagination }: HomeProps): JSX.Element {
             </button>
           )}
         </div>
+        {preview && (
+          <Link href="/api/exit-preview">
+            <aside className={commonStyles.preview}>
+              <a>Sair do modo Preview</a>
+            </aside>
+          </Link>
+        )}
       </main>
     </>
   )
 }
 
-export const getStaticProps: GetStaticProps = async () => {
+export const getStaticProps: GetStaticProps<HomeProps> = async ({
+  preview = false,
+  previewData,
+}) => {
   const prismic = getPrismicClient()
   const response = await prismic.query(
     [Prismic.predicates.at('document.type', 'posts')],
     {
       fetch: ['posts.title', 'posts.subtitle', 'posts.author'],
       pageSize: 1,
+      ref: previewData?.ref ?? null,
     }
   )
 
@@ -127,6 +143,7 @@ export const getStaticProps: GetStaticProps = async () => {
         posts,
       },
       revalidate: 60 * 30, // 30 minutos
+      preview,
     },
   }
 }

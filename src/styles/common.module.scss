@@ -1,1 +1,18 @@
-// TODO
+// Exit preview button
+
+.preview {
+  width: 100%;
+  text-align: center;
+  padding: 1.5rem;
+  background-color: var(--gray-50);
+  margin: 5rem 0;
+  cursor: pointer;
+  border-radius: 4px;
+
+  a {
+    color: black;
+    font-size: 1rem;
+    text-decoration: none;
+    font-weight: 600;
+  }
+}

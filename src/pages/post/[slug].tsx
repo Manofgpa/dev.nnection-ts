@@ -11,6 +11,7 @@ import { FaCalendar, FaUser, FaClock } from 'react-icons/fa'
 import Comments from '../../components/Comments'
 import { getPrismicClient } from '../../services/prismic'
 
+import commonStyles from '../../styles/common.module.scss'
 import styles from './post.module.scss'
 
 interface Post {
@@ -35,9 +36,7 @@ interface PostProps {
   post: Post
 }
 
-export default function Post({ post }: PostProps): JSX.Element {
-  console.log(post)
-
+export default function Post({ post }: PostProps, preview): JSX.Element {
   return (
     <>
       {!post ? (
@@ -95,6 +94,13 @@ export default function Post({ post }: PostProps): JSX.Element {
             <section className={styles.utteranc}>
               <Comments />
             </section>
+            {preview && (
+              <Link href="/api/exit-preview">
+                <aside className={commonStyles.preview}>
+                  <a>Sair do modo Preview</a>
+                </aside>
+              </Link>
+            )}
           </main>
         </>
       )}
