@@ -33,10 +33,15 @@
     color: var(--gray-100);
     margin: 2rem 0;
 
+
+    p {
+      margin-bottom: 0.5rem;
+    }
     section {
       margin: 2rem 0;
 
       h2 {
+        font-size: 1.75rem;
         margin: 2rem 0;
       }
     }

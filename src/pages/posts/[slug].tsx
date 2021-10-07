@@ -77,15 +77,17 @@ export default function Post({ post }: PostProps): JSX.Element {
 // resgatar posts para gerar static na build
 export const getStaticPaths: GetStaticPaths = async () => {
   const prismic = getPrismicClient()
-  // const posts = await prismic.query(
-  //   [Prismic.predicates.at('document.type', 'posts')],
-  //   {
-  //     fetch: ['posts.title', 'posts.subtitle', 'posts.author'],
-  //   }
-  // )
+  const response = await prismic.query(
+    [Prismic.predicates.at('document.type', 'posts')],
+    {
+      fetch: ['posts.uid'],
+    }
+  )
+
+  const postsPaths = response.results.map(post => `/posts/${post.uid}`)
 
   return {
-    paths: [],
+    paths: [...postsPaths],
     fallback: true,
   }
 }
