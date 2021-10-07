@@ -6,9 +6,9 @@ import { FaCalendar, FaUser } from 'react-icons/fa'
 import { format } from 'date-fns'
 import ptBR from 'date-fns/locale/pt-BR'
 import Head from 'next/head'
+import { useState } from 'react'
 import { getPrismicClient } from '../services/prismic'
 
-import commonStyles from '../styles/common.module.scss'
 import styles from './home.module.scss'
 
 interface Post {
@@ -29,7 +29,34 @@ interface HomeProps {
 }
 
 export default function Home({ postsPagination }: HomeProps): JSX.Element {
-  const { posts } = postsPagination
+  const [pagination, setPagination] = useState(postsPagination)
+  const { posts } = pagination
+
+  console.log(pagination)
+
+  const handlePagination: () => void = async () => {
+    const nextPagePosts = await fetch(pagination.next_page).then(res =>
+      res.json()
+    )
+
+    const newPosts = nextPagePosts.results.map(p => {
+      return {
+        slug: p.slugs[0],
+        title: p.data.title[0].text,
+        subtitle: p.data.subtitle[0].text,
+        date: format(new Date(p.first_publication_date), 'dd MMM yyyy', {
+          locale: ptBR,
+        }),
+        author: p.data.author[0].text,
+      }
+    })
+
+    setPagination({
+      ...pagination,
+      next_page: nextPagePosts.next_page,
+      posts: [...posts, ...newPosts],
+    })
+  }
 
   return (
     <>
@@ -40,7 +67,7 @@ export default function Home({ postsPagination }: HomeProps): JSX.Element {
         <div className={styles.posts}>
           {posts.map(post => (
             <article key={post.slug} className="">
-              <Link key={post.slug} href={`/posts/${post.slug}`}>
+              <Link key={post.slug} href={`/post/${post.slug}`}>
                 <a key={post.slug}>
                   <h2>{post.title}</h2>
                   <p>{post.subtitle}</p>
@@ -58,11 +85,15 @@ export default function Home({ postsPagination }: HomeProps): JSX.Element {
               </Link>
             </article>
           ))}
-          {/* {postsPagination.next_page && ( */}
-          <a href="" className={styles.morePosts}>
-            Carregar mais posts
-          </a>
-          {/* )} */}
+          {pagination.next_page && (
+            <button
+              type="button"
+              className={styles.morePosts}
+              onClick={handlePagination}
+            >
+              Carregar mais posts
+            </button>
+          )}
         </div>
       </main>
     </>
@@ -75,6 +106,7 @@ export const getStaticProps: GetStaticProps = async () => {
     [Prismic.predicates.at('document.type', 'posts')],
     {
       fetch: ['posts.title', 'posts.subtitle', 'posts.author'],
+      pageSize: 1,
     }
   )
 

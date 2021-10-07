@@ -8,7 +8,6 @@ import { RichText } from 'prismic-dom'
 import { FaCalendar, FaUser, FaClock } from 'react-icons/fa'
 import { getPrismicClient } from '../../services/prismic'
 
-import commonStyles from '../../styles/common.module.scss'
 import styles from './post.module.scss'
 
 interface Post {
@@ -34,42 +33,48 @@ interface PostProps {
 }
 
 export default function Post({ post }: PostProps): JSX.Element {
-  // console.log(post)
-
   return (
     <>
-      <div className={styles.banner}>
-        <img
-          src={post?.data.banner.url}
-          alt="banner"
-          className={styles.banner}
-        />
-      </div>
-      <main key={post?.slug} className={styles.container}>
-        <h1>{post?.data.title}</h1>
-        <div className={styles.details}>
-          <div>
-            <FaCalendar />
-            <time>{post?.first_publication_date}</time>
+      {!post ? (
+        <p>Carregando...</p>
+      ) : (
+        <>
+          <div className={styles.banner}>
+            <img
+              src={post?.data.banner.url}
+              alt="banner"
+              className={styles.banner}
+            />
           </div>
-          <div>
-            <FaUser />
-            <p>{post?.data.author}</p>
-          </div>
-          <div>
-            <FaClock />
-            <p>4 min</p>
-          </div>
-        </div>
-        <div className={styles.content}>
-          {post?.data.content.map(cont => (
-            <section key={cont.heading}>
-              <h2>{cont.heading}</h2>
-              <div dangerouslySetInnerHTML={{ __html: cont.body.text }} />
-            </section>
-          ))}
-        </div>
-      </main>
+          <main key={post?.slug} className={styles.container}>
+            <h1>{post?.data.title}</h1>
+            <div className={styles.details}>
+              <div>
+                <FaCalendar />
+                <time>{post?.first_publication_date}</time>
+              </div>
+              <div>
+                <FaUser />
+                <p>{post?.data.author}</p>
+              </div>
+              <div>
+                <FaClock />
+                <p>4 min</p>
+              </div>
+            </div>
+            <div className={styles.content}>
+              {post?.data.content.map(cont => (
+                <section key={cont.heading}>
+                  <h2>{cont.heading}</h2>
+                  {/* eslint-disable */}
+                  <div dangerouslySetInnerHTML={{ __html: cont.body.text }} />
+                </section>
+              ))}
+            </div>
+            <p>Carregando...</p>
+          </main>
+        </>
+      )}
     </>
   )
 }
@@ -84,10 +89,16 @@ export const getStaticPaths: GetStaticPaths = async () => {
     }
   )
 
-  const postsPaths = response.results.map(post => `/posts/${post.uid}`)
+  const postsPaths = response.results.map(post => {
+    return {
+      params: {
+        slug: `${post.uid}`,
+      },
+    }
+  })
 
   return {
-    paths: [...postsPaths],
+    paths: postsPaths,
     fallback: true,
   }
 }
