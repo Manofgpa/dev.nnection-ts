@@ -1,4 +1,5 @@
 import { GetStaticPaths, GetStaticProps } from 'next'
+import Head from 'next/head'
 
 import Prismic from '@prismicio/client'
 import ptBR from 'date-fns/locale/pt-BR'
@@ -39,6 +40,9 @@ export default function Post({ post }: PostProps): JSX.Element {
         <p>Carregando...</p>
       ) : (
         <>
+          <Head>
+            <title>{post.data.title}</title>
+          </Head>
           <div className={styles.banner}>
             <img
               src={post?.data.banner.url}
