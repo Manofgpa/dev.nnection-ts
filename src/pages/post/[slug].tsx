@@ -28,6 +28,7 @@ interface Post {
   slug: string
   first_publication_date: string | null
   data: {
+    readTime: number
     title: string
     banner: {
       url: string
@@ -48,6 +49,8 @@ interface PostProps {
 }
 
 export default function Post({ post, preview }: PostProps): JSX.Element {
+  console.log(post)
+
   return (
     <>
       {!post ? (
@@ -77,7 +80,7 @@ export default function Post({ post, preview }: PostProps): JSX.Element {
               </div>
               <div>
                 <FaClock />
-                <p>4 min</p>
+                <p>{post.data.readTime} min</p>
               </div>
             </div>
             <div className={styles.content}>
@@ -200,18 +203,21 @@ export const getStaticProps: GetStaticProps<PostProps> = async ({
     },
   }
 
-  // if (!pagination.nextPost.slug) {
-
-  // }
-
   const content = response.data.content.map(cont => {
     return {
       heading: cont.heading,
       body: {
         text: RichText.asHtml(cont.body),
       },
+      totalWords: RichText.asText(cont.body),
     }
   })
+
+  const totalWords = content.reduce((acc, cur) => {
+    return (acc += cur.totalWords)
+  }, 0)
+
+  const readTime = Math.round(totalWords.match(/\S+/g).length / 200)
 
   const post = {
     pagination,
@@ -224,6 +230,7 @@ export const getStaticProps: GetStaticProps<PostProps> = async ({
       }
     ),
     data: {
+      readTime,
       title: RichText.asText(response.data.title),
       banner: {
         url: response.data.banner.url,
