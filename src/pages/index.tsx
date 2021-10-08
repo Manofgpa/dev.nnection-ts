@@ -45,12 +45,12 @@ export default function Home({
     const newPosts = nextPagePosts.results.map(p => {
       return {
         slug: p.slugs[0],
-        title: p.data.title[0].text,
-        subtitle: p.data.subtitle[0].text,
+        title: p.data.title[0]?.text,
+        subtitle: p.data.subtitle[0]?.text,
         date: format(new Date(p.first_publication_date), 'dd MMM yyyy', {
           locale: ptBR,
         }),
-        author: p.data.author[0].text,
+        author: p.data.author[0]?.text,
       }
     })
 
@@ -119,7 +119,7 @@ export const getStaticProps: GetStaticProps<HomeProps> = async ({
     [Prismic.predicates.at('document.type', 'posts')],
     {
       fetch: ['posts.title', 'posts.subtitle', 'posts.author'],
-      pageSize: 1,
+      pageSize: 3,
       ref: previewData?.ref ?? null,
     }
   )

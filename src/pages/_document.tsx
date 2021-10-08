@@ -17,6 +17,7 @@ export default class MyDocument extends Document {
             defer
             src={`https://static.cdn.prismic.io/prismic.js?new=true&repo=${repoName}`}
           />
+          <link rel="shortcut icon" href="/favicon.ico" />
         </Head>
 
         <body>

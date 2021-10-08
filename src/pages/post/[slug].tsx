@@ -27,6 +27,7 @@ interface Post {
   pagination: Pagination
   slug: string
   first_publication_date: string | null
+  last_publication_date: string | null
   data: {
     readTime: number
     title: string
@@ -49,8 +50,6 @@ interface PostProps {
 }
 
 export default function Post({ post, preview }: PostProps): JSX.Element {
-  console.log(post)
-
   return (
     <>
       {!post ? (
@@ -82,6 +81,12 @@ export default function Post({ post, preview }: PostProps): JSX.Element {
                 <FaClock />
                 <p>{post.data.readTime} min</p>
               </div>
+            </div>
+            <div className={styles.lastEdit}>
+              <p>{`* editado em ${post?.last_publication_date.slice(
+                0,
+                11
+              )}, às ${post?.last_publication_date.slice(11, 18)}h`}</p>
             </div>
             <div className={styles.content}>
               {post?.data.content.map(cont => (
@@ -170,7 +175,7 @@ export const getStaticProps: GetStaticProps<PostProps> = async ({
     ref: previewData?.ref ?? null,
   })
 
-  const prevPost = await prismic.query(
+  const nextPost = await prismic.query(
     Prismic.predicates.at('document.type', 'posts'),
     {
       pageSize: 1,
@@ -179,7 +184,7 @@ export const getStaticProps: GetStaticProps<PostProps> = async ({
     }
   )
 
-  const nextPost = await prismic.query(
+  const prevPost = await prismic.query(
     Prismic.predicates.at('document.type', 'posts'),
     {
       pageSize: 1,
@@ -225,6 +230,13 @@ export const getStaticProps: GetStaticProps<PostProps> = async ({
     first_publication_date: format(
       new Date(response.first_publication_date),
       'dd MMM yyyy',
+      {
+        locale: ptBR,
+      }
+    ),
+    last_publication_date: format(
+      new Date(response.last_publication_date),
+      'dd MMM yyyy hh:mm',
       {
         locale: ptBR,
       }
