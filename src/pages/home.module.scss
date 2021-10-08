@@ -7,6 +7,10 @@
   align-items: center;
   justify-content: center;
 
+  @media screen and (max-width: 746px) {
+    padding: 0 2rem;
+  }
+
   .posts {
     max-width: 600px;
 
