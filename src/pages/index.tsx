@@ -27,7 +27,7 @@ interface PostPagination {
 
 interface HomeProps {
   postsPagination: PostPagination
-  preview: any
+  preview: boolean
 }
 
 export default function Home({

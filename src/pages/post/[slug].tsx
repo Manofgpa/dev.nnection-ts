@@ -46,7 +46,7 @@ interface Post {
 
 interface PostProps {
   post: Post
-  preview: any
+  preview: boolean
 }
 
 export default function Post({ post, preview }: PostProps): JSX.Element {
