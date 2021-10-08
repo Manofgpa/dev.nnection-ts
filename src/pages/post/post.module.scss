@@ -63,6 +63,17 @@
   display: flex;
   justify-content: space-between;
 
+  div {
+    max-width: 20rem;
+    vertical-align: middle;
+    cursor: pointer;
+
+    &:hover {
+      transition: filter 0.2s;
+      filter: brightness(0.7);
+    }
+  }
+
   div:first-child {
     text-align: left;
   }
@@ -81,5 +92,18 @@
     border: none;
     font-weight: bold;
     margin-bottom: 3rem;
+  }
+
+  .noNextPost, .noPrevPost {
+    cursor:not-allowed;
+
+    p {
+    color: var(--pink-700);
+    font-weight: bold;
+    }
+
+     &:hover {
+      filter: none;
+    }
   }
 }

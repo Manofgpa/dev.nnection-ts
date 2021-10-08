@@ -11,6 +11,11 @@
 
     article {
       margin: 2rem 0;
+
+      &:hover {
+        transition: all 0.2s;
+        filter: brightness(0.7);
+      }
     }
 
     a {

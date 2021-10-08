@@ -14,7 +14,17 @@ import { getPrismicClient } from '../../services/prismic'
 import commonStyles from '../../styles/common.module.scss'
 import styles from './post.module.scss'
 
+interface PaginationPosts {
+  slug: string
+  title: string
+}
+
+interface Pagination {
+  prevPost: PaginationPosts
+  nextPost: PaginationPosts
+}
 interface Post {
+  pagination: Pagination
   slug: string
   first_publication_date: string | null
   data: {
@@ -34,9 +44,10 @@ interface Post {
 
 interface PostProps {
   post: Post
+  preview: any
 }
 
-export default function Post({ post }: PostProps, preview): JSX.Element {
+export default function Post({ post, preview }: PostProps): JSX.Element {
   return (
     <>
       {!post ? (
@@ -80,16 +91,30 @@ export default function Post({ post }: PostProps, preview): JSX.Element {
             </div>
             <hr />
             <section className={styles.pagination}>
-              {/* <Link href={pagination.next_page}> */}
-              <div>
-                <p>Como utlizar hooks</p>
-                <button>Post anterior</button>
-              </div>
-              {/* </Link> */}
-              <div>
-                <p>Criando um app CRA do zero</p>
-                <button>Próximo post</button>
-              </div>
+              {post.pagination.prevPost.title ? (
+                <Link href={`/post/${post.pagination.prevPost.slug}`}>
+                  <div>
+                    <p>{post?.pagination.prevPost.title}</p>
+                    <button>Post anterior</button>
+                  </div>
+                </Link>
+              ) : (
+                <div className={styles.noPrevPost}>
+                  <p>Nenhum post anterior</p>
+                </div>
+              )}
+              {post.pagination.nextPost.title ? (
+                <Link href={`/post/${post?.pagination.nextPost.slug}`}>
+                  <div>
+                    <p>{post.pagination.nextPost.title}</p>
+                    <button>Próximo post</button>
+                  </div>
+                </Link>
+              ) : (
+                <div className={styles.noNextPost}>
+                  <p>Nenhum post próximo</p>
+                </div>
+              )}
             </section>
             <section className={styles.utteranc}>
               <Comments />
@@ -131,10 +156,53 @@ export const getStaticPaths: GetStaticPaths = async () => {
   }
 }
 
-export const getStaticProps: GetStaticProps = async ({ params: { slug } }) => {
+export const getStaticProps: GetStaticProps<PostProps> = async ({
+  params: { slug },
+  preview = false,
+  previewData,
+}) => {
   const prismic = getPrismicClient()
 
-  const response = await prismic.getByUID('posts', String(slug), {})
+  const response = await prismic.getByUID('posts', String(slug), {
+    ref: previewData?.ref ?? null,
+  })
+
+  const prevPost = await prismic.query(
+    Prismic.predicates.at('document.type', 'posts'),
+    {
+      pageSize: 1,
+      after: response.id,
+      orderings: '[document.last_publication_date desc]',
+    }
+  )
+
+  const nextPost = await prismic.query(
+    Prismic.predicates.at('document.type', 'posts'),
+    {
+      pageSize: 1,
+      after: response.id,
+      orderings: '[document.last_publication_date]',
+    }
+  )
+
+  const pagination = {
+    prevPost: {
+      slug: prevPost.results[0] ? prevPost.results[0].slugs[0] : null,
+      title: prevPost.results[0]
+        ? prevPost.results[0].data.title[0].text
+        : null,
+    },
+    nextPost: {
+      slug: nextPost.results[0] ? nextPost.results[0].slugs[0] : null,
+      title: nextPost.results[0]
+        ? nextPost.results[0].data.title[0].text
+        : null,
+    },
+  }
+
+  // if (!pagination.nextPost.slug) {
+
+  // }
 
   const content = response.data.content.map(cont => {
     return {
@@ -146,7 +214,7 @@ export const getStaticProps: GetStaticProps = async ({ params: { slug } }) => {
   })
 
   const post = {
-    response,
+    pagination,
     slug: response.uid,
     first_publication_date: format(
       new Date(response.first_publication_date),
@@ -168,6 +236,7 @@ export const getStaticProps: GetStaticProps = async ({ params: { slug } }) => {
   return {
     props: {
       post,
+      preview,
     },
     redirect: 60 * 30, // 30 minutos
   }
